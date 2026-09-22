@@ -1,3 +1,4 @@
 {
-  "apiKey": "${API_KEY}"
+  "apiKey": "${API_KEY}",
+  "apiBaseUrl": "${API_BASE_URL}"
 }

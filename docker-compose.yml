@@ -35,6 +35,7 @@ services:
       - "4200:80"
     environment:
       API_KEY: ${API_KEY:?falta API_KEY en .env}
+      API_BASE_URL: http://localhost:8080
     depends_on:
       - go-qr-api
     networks:

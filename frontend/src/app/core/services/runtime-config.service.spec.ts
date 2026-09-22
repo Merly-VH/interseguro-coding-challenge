@@ -2,11 +2,16 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { DEFAULT_API_BASE_URL } from '../api-config';
 import { RuntimeConfigService } from './runtime-config.service';
 
 describe('RuntimeConfigService', () => {
   let service: RuntimeConfigService;
   let httpMock: HttpTestingController;
+
+  function flushConfig(config: { apiKey?: string; apiBaseUrl?: string }): void {
+    httpMock.expectOne((req) => req.url.startsWith('config.json')).flush(config);
+  }
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -18,50 +23,41 @@ describe('RuntimeConfigService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('devuelve la apiKey recortada cuando config.json la trae', () => {
-    let received: string | undefined;
-    service.getConfiguredApiKey().subscribe((key) => (received = key));
-
-    httpMock
-      .expectOne((req) => req.url.startsWith('config.json'))
-      .flush({ apiKey: '  clave-docker  ' });
-
-    expect(received).toBe('clave-docker');
+  it('empieza con el apiBaseUrl por defecto y ready en false', () => {
+    expect(service.ready()).toBe(false);
+    expect(service.apiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
+    expect(service.apiKey()).toBe('');
   });
 
-  it('devuelve string vacío si config.json no trae apiKey', () => {
-    let received: string | undefined;
-    service.getConfiguredApiKey().subscribe((key) => (received = key));
+  it('toma apiKey y apiBaseUrl recortados de config.json', () => {
+    flushConfig({ apiKey: '  clave-docker  ', apiBaseUrl: '  https://api.onrender.com  ' });
 
-    httpMock.expectOne((req) => req.url.startsWith('config.json')).flush({});
-
-    expect(received).toBe('');
+    expect(service.apiKey()).toBe('clave-docker');
+    expect(service.apiBaseUrl()).toBe('https://api.onrender.com');
+    expect(service.ready()).toBe(true);
   });
 
-  it('devuelve string vacío (no falla) si la request de red falla', () => {
-    let received: string | undefined;
-    let errored = false;
-    service.getConfiguredApiKey().subscribe({
-      next: (key) => (received = key),
-      error: () => (errored = true),
-    });
+  it('mantiene el apiBaseUrl por defecto si config.json no trae uno', () => {
+    flushConfig({ apiKey: 'clave' });
 
+    expect(service.apiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
+    expect(service.ready()).toBe(true);
+  });
+
+  it('marca ready aunque config.json no traiga nada', () => {
+    flushConfig({});
+
+    expect(service.apiKey()).toBe('');
+    expect(service.apiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
+    expect(service.ready()).toBe(true);
+  });
+
+  it('marca ready aunque la request de red falle (no rompe la app)', () => {
     httpMock
       .expectOne((req) => req.url.startsWith('config.json'))
       .flush(null, { status: 404, statusText: 'Not Found' });
 
-    expect(errored).toBe(false);
-    expect(received).toBe('');
-  });
-
-  it('cachea el resultado: una segunda suscripción no dispara otra request', () => {
-    service.getConfiguredApiKey().subscribe();
-    httpMock.expectOne((req) => req.url.startsWith('config.json')).flush({ apiKey: 'x' });
-
-    let received: string | undefined;
-    service.getConfiguredApiKey().subscribe((key) => (received = key));
-
-    httpMock.expectNone((req) => req.url.startsWith('config.json'));
-    expect(received).toBe('x');
+    expect(service.ready()).toBe(true);
+    expect(service.apiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
   });
 });

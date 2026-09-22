@@ -1,3 +1,5 @@
-// URL base de go-qr-api. No es un secreto (a diferencia de la API key, que
-// el usuario ingresa en la UI y nunca se guarda en el codigo fuente).
-export const API_BASE_URL = 'http://localhost:8080';
+// Valor de respaldo cuando config.json no trae apiBaseUrl (desarrollo local
+// con `ng serve`, sin Docker de por medio). En Docker/Render, la URL real
+// de go-qr-api la inyecta docker-entrypoint.sh via config.json — ver
+// RuntimeConfigService.
+export const DEFAULT_API_BASE_URL = 'http://localhost:8080';

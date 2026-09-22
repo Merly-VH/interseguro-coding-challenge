@@ -2,8 +2,8 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { switchMap } from 'rxjs/operators';
 
-import { API_BASE_URL } from '../api-config';
 import { AuthService } from '../services/auth.service';
+import { RuntimeConfigService } from '../services/runtime-config.service';
 
 // Adjunta el Bearer token solo a las llamadas hacia go-qr-api, salvo
 // /api/token (el endpoint que lo emite). Cualquier otra request —como el
@@ -11,7 +11,8 @@ import { AuthService } from '../services/auth.service';
 // no crear un ciclo (pedir el config requeriría un token, que requeriría
 // el config...).
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const targetsApi = req.url.startsWith(API_BASE_URL);
+  const runtimeConfig = inject(RuntimeConfigService);
+  const targetsApi = req.url.startsWith(runtimeConfig.apiBaseUrl());
   if (!targetsApi || req.url.endsWith('/api/token')) {
     return next(req);
   }
