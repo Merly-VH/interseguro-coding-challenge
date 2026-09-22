@@ -5,6 +5,7 @@ services:
       - "3000:3000"
     environment:
       PORT: "3000"
+      JWT_SECRET: ${JWT_SECRET:?falta JWT_SECRET en .env}
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
       interval: 5s
@@ -19,6 +20,8 @@ services:
       - "8080:8080"
     environment:
       STATS_API_URL: http://node-stats-api:3000
+      JWT_SECRET: ${JWT_SECRET:?falta JWT_SECRET en .env}
+      API_KEY: ${API_KEY:?falta API_KEY en .env}
     depends_on:
       node-stats-api:
         condition: service_healthy

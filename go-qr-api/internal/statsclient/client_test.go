@@ -29,6 +29,9 @@ func TestComputeStats_Success(t *testing.T) {
 		if _, ok := body["r"]; !ok {
 			t.Error("el body enviado no incluye \"r\"")
 		}
+		if got := r.Header.Get("Authorization"); got != "Bearer test-token" {
+			t.Errorf("Authorization = %q, se esperaba \"Bearer test-token\" (pass-through del cliente)", got)
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(statsclient.Stats{
@@ -39,7 +42,7 @@ func TestComputeStats_Success(t *testing.T) {
 	defer server.Close()
 
 	client := statsclient.New(server.URL)
-	stats, err := client.ComputeStats(context.Background(), [][]float64{{1, 0}, {0, 1}}, [][]float64{{2, 0}, {0, 3}})
+	stats, err := client.ComputeStats(context.Background(), [][]float64{{1, 0}, {0, 1}}, [][]float64{{2, 0}, {0, 3}}, "Bearer test-token")
 	if err != nil {
 		t.Fatalf("ComputeStats() error = %v", err)
 	}
@@ -59,7 +62,7 @@ func TestComputeStats_UpstreamErrorStatus(t *testing.T) {
 	defer server.Close()
 
 	client := statsclient.New(server.URL)
-	if _, err := client.ComputeStats(context.Background(), [][]float64{{1}}, [][]float64{{1}}); err == nil {
+	if _, err := client.ComputeStats(context.Background(), [][]float64{{1}}, [][]float64{{1}}, ""); err == nil {
 		t.Fatal("se esperaba un error cuando el upstream responde con estado de error")
 	}
 }
@@ -67,7 +70,7 @@ func TestComputeStats_UpstreamErrorStatus(t *testing.T) {
 func TestComputeStats_UpstreamUnreachable(t *testing.T) {
 	// Puerto que nadie escucha: fuerza un error de conexion sin depender de red externa.
 	client := statsclient.New("http://127.0.0.1:0")
-	if _, err := client.ComputeStats(context.Background(), [][]float64{{1}}, [][]float64{{1}}); err == nil {
+	if _, err := client.ComputeStats(context.Background(), [][]float64{{1}}, [][]float64{{1}}, ""); err == nil {
 		t.Fatal("se esperaba un error cuando el upstream no responde")
 	}
 }
@@ -80,7 +83,7 @@ func TestComputeStats_MalformedResponse(t *testing.T) {
 	defer server.Close()
 
 	client := statsclient.New(server.URL)
-	if _, err := client.ComputeStats(context.Background(), [][]float64{{1}}, [][]float64{{1}}); err == nil {
+	if _, err := client.ComputeStats(context.Background(), [][]float64{{1}}, [][]float64{{1}}, ""); err == nil {
 		t.Fatal("se esperaba un error cuando la respuesta no es JSON valido")
 	}
 }

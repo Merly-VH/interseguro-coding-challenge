@@ -44,7 +44,7 @@ func (h *Handler) QR(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	stats, err := h.statsClient.ComputeStats(c.Context(), q, r)
+	stats, err := h.statsClient.ComputeStats(c.Context(), q, r, c.Get(fiber.HeaderAuthorization))
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadGateway, "no se pudieron calcular las estadísticas: "+err.Error())
 	}

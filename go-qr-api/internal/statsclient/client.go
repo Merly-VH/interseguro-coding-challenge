@@ -49,7 +49,11 @@ type DiagonalFlag struct {
 
 // ComputeStats envía q y r a node-stats-api y devuelve las estadísticas
 // calculadas. El ctx recibido controla el timeout/cancelación del request.
-func (c *Client) ComputeStats(ctx context.Context, q, r [][]float64) (*Stats, error) {
+// authHeader es el valor completo del header Authorization recibido del
+// cliente original (p.ej. "Bearer xxx"); se reenvía tal cual a
+// node-stats-api en vez de emitir un token nuevo (ambas APIs comparten el
+// mismo secreto de firma). Se omite si viene vacío.
+func (c *Client) ComputeStats(ctx context.Context, q, r [][]float64, authHeader string) (*Stats, error) {
 	body, err := json.Marshal(statsRequest{Q: q, R: r})
 	if err != nil {
 		return nil, fmt.Errorf("error al serializar la solicitud a node-stats-api: %w", err)
@@ -60,6 +64,9 @@ func (c *Client) ComputeStats(ctx context.Context, q, r [][]float64) (*Stats, er
 		return nil, fmt.Errorf("error al construir la solicitud a node-stats-api: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if authHeader != "" {
+		req.Header.Set("Authorization", authHeader)
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
