@@ -1,0 +1,20 @@
+﻿# Node
+node_modules/
+npm-debug.log*
+dist/
+coverage/
+
+# Go
+go-qr-api/go-qr-api.exe
+go-qr-api/*.test
+
+# Variables de entorno
+.env
+*.env
+!.env.example
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
