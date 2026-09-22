@@ -224,3 +224,76 @@ Errores `400/401 Bad Request/Unauthorized` (formato consistente `{"error": "..."
 ### GET /health
 
 Healthcheck, responde `{"status": "ok"}`.
+
+## Despliegue en Render
+
+Los 3 servicios (`node-stats-api`, `go-qr-api`, `frontend`) se despliegan
+como Web Services de Docker en [Render](https://render.com) (tier gratuito,
+sin tarjeta de credito). El repo incluye `render.yaml` para desplegarlos
+juntos con "Blueprint".
+
+**Nota:** el `Dockerfile` de cada servicio no cambia entre local y Render —
+la unica diferencia es que Render inyecta su propia variable `PORT`, y
+tanto `go-qr-api` como `node-stats-api` ya la respetan (si no esta seteada,
+usan 8080 / 3000 como en local).
+
+### Opcion A — Blueprint (recomendada, un solo paso)
+
+1. Crear cuenta en Render con GitHub (gratis, sin tarjeta).
+2. **New > Blueprint**, elegir este repositorio. Render deberia detectar
+   `render.yaml` y proponer los 3 servicios.
+3. Si el Blueprint no valida (puede pasar si Render cambio el esquema),
+   usar la **Opcion B** de abajo para cada servicio en su lugar.
+
+### Opcion B — Manual (por si el Blueprint falla)
+
+Repetir "**New > Web Service**" 3 veces, una por carpeta
+(`node-stats-api`, `go-qr-api`, `frontend`), conectando el mismo repo y
+seteando el "Root Directory" a cada carpeta — Render detecta el
+`Dockerfile` solo.
+
+### Configurar variables de entorno (ambas opciones)
+
+En el dashboard de cada servicio, pestaña **Environment**:
+
+| Servicio | Variables |
+|---|---|
+| `node-stats-api` | `JWT_SECRET` (valor largo y aleatorio) |
+| `go-qr-api` | mismo `JWT_SECRET`, `API_KEY` (otro valor aleatorio), `STATS_API_URL`, `CORS_ALLOWED_ORIGINS` |
+| `frontend` | mismo `API_KEY` que `go-qr-api` |
+
+`STATS_API_URL` y `CORS_ALLOWED_ORIGINS` no se pueden saber de antemano
+(dependen de las URLs que Render asigna). Flujo:
+
+1. Desplegar los 3 servicios con esas dos variables en blanco (o con
+   cualquier valor provisorio) — van a fallar al arrancar o al llamarse
+   entre si, es esperado.
+2. Cuando los 3 esten "Live", copiar sus URLs publicas
+   (`https://<nombre>.onrender.com`, visibles arriba de cada servicio).
+3. En `go-qr-api > Environment`, setear:
+   - `STATS_API_URL` = URL publica de `node-stats-api`
+   - `CORS_ALLOWED_ORIGINS` = URL publica de `frontend`
+4. Guardar — Render redespliega `go-qr-api` solo.
+5. Abrir la URL de `frontend` y probar el flujo completo.
+
+### Troubleshooting
+
+- **El servicio no arranca / "port scan timeout"**: en `Settings` del
+  servicio, revisar que no haya un override manual de puerto conflictivo;
+  si lo hay, borrarlo (dejar que Render use el `PORT` que el Dockerfile
+  expone).
+- **Primera carga lenta (~30-50s)**: el tier gratuito "duerme" los
+  servicios tras inactividad. Es normal, no es un error.
+- **Error de CORS en la consola del navegador**: `CORS_ALLOWED_ORIGINS` en
+  `go-qr-api` no coincide exactamente con la URL del frontend (con
+  `https://`, sin `/` final).
+
+### Que compartir con quien revise
+
+- El **link del frontend** (`https://interseguro-frontend-xxxx.onrender.com`)
+  alcanza por si solo: la API key se configura sola (ver seccion
+  "Frontend" mas arriba), no requiere ningun dato adicional para usar la UI.
+- Si ademas quieren probar las APIs directo (curl/Postman, sin el
+  frontend), van a necesitar el valor de `API_KEY` para pedir un token en
+  `POST /api/token` — comunicarlo por un canal aparte del repositorio
+  (nunca en el propio repo ni en un commit).

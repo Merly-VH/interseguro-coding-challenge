@@ -1,0 +1,43 @@
+# Blueprint de Render (https://render.com/docs/blueprint-spec) para desplegar
+# los 3 servicios de este repo con "New > Blueprint". Las variables marcadas
+# con `sync: false` no tienen valor acá a propósito (son secretos o dependen
+# de URLs que Render asigna recién al desplegar) — se completan a mano en el
+# dashboard de cada servicio. Ver el README, sección "Despliegue en Render".
+services:
+  - type: web
+    name: interseguro-node-stats-api
+    env: docker
+    rootDir: node-stats-api
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+
+  - type: web
+    name: interseguro-go-qr-api
+    env: docker
+    rootDir: go-qr-api
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: STATS_API_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+  - type: web
+    name: interseguro-frontend
+    env: docker
+    rootDir: frontend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: API_KEY
+        sync: false
