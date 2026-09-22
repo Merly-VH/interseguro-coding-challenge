@@ -35,6 +35,23 @@ Para detener y limpiar:
 docker compose down
 ```
 
+## Testing
+
+**go-qr-api** (tests unitarios de la factorizacion QR y de integracion del
+handler HTTP + cliente contra node-stats-api simulado con `httptest`):
+```bash
+cd go-qr-api
+go test ./... -v -cover
+```
+
+**node-stats-api** (tests unitarios de estadisticas/validacion y de
+integracion del servidor Express completo, con el test runner nativo de
+Node, sin dependencias extra):
+```bash
+cd node-stats-api
+npm test
+```
+
 ## Variables de entorno
 
 | Variable       | API         | Default                 | Descripcion                                    |
