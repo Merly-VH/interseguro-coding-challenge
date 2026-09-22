@@ -3,17 +3,20 @@ import { inject } from '@angular/core';
 import { switchMap } from 'rxjs/operators';
 
 import { AuthService } from '../services/auth.service';
-import { RuntimeConfigService } from '../services/runtime-config.service';
 
-// Adjunta el Bearer token solo a las llamadas hacia go-qr-api, salvo
-// /api/token (el endpoint que lo emite). Cualquier otra request —como el
-// config.json estático que lee RuntimeConfigService— pasa sin tocar, para
-// no crear un ciclo (pedir el config requeriría un token, que requeriría
-// el config...).
+// Adjunta el Bearer token solo a llamadas HTTP absolutas (http:// o
+// https://) hacia go-qr-api, salvo /api/token (el endpoint que lo emite).
+// Las peticiones relativas —como config.json, que lee RuntimeConfigService—
+// pasan sin tocar. Importante: no inyectamos RuntimeConfigService acá para
+// decidir esto (aunque tengamos la URL real disponible ahí), porque la
+// propia petición que ese servicio hace para leer config.json pasa por
+// este interceptor — inyectarlo acá crearía una dependencia circular
+// (RuntimeConfigService no termina de construirse hasta que su petición
+// resuelve, y esa petición pasaría por un interceptor que necesita
+// RuntimeConfigService ya construido).
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const runtimeConfig = inject(RuntimeConfigService);
-  const targetsApi = req.url.startsWith(runtimeConfig.apiBaseUrl());
-  if (!targetsApi || req.url.endsWith('/api/token')) {
+  const isAbsoluteRequest = /^https?:\/\//i.test(req.url);
+  if (!isAbsoluteRequest || req.url.endsWith('/api/token')) {
     return next(req);
   }
 
