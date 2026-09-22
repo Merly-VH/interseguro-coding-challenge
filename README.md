@@ -14,7 +14,26 @@ enunciado original.
 - docs/            Documentacion tecnica y decisiones
 
 ## Como levantar el entorno
-(pendiente, se agrega en la fase de Docker)
+
+Requiere Docker y Docker Compose.
+
+```bash
+docker compose up --build
+```
+
+Esto construye ambas imagenes (multi-stage, corren como usuario no-root) y
+las levanta en una red interna compartida: `go-qr-api` espera a que
+`node-stats-api` este saludable (`healthcheck`) antes de arrancar, y le
+habla por su nombre de servicio (`http://node-stats-api:3000`) via
+`STATS_API_URL`.
+
+- go-qr-api: http://localhost:8080
+- node-stats-api: http://localhost:3000
+
+Para detener y limpiar:
+```bash
+docker compose down
+```
 
 ## Variables de entorno
 
