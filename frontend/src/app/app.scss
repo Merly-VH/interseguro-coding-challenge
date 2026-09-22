@@ -1,0 +1,30 @@
+:host {
+  display: block;
+}
+
+mat-toolbar {
+  // Mismo color que el fondo del body (ver styles.scss), para que la
+  // toolbar no se destaque como una barra de color distinto.
+  background-color: #eaf2fb;
+}
+
+mat-toolbar span {
+  display: block;
+  flex: 1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  white-space: nowrap;
+}
+
+main {
+  min-height: calc(100vh - 4rem);
+  padding-block: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  mat-toolbar span {
+    font-size: 0.95rem;
+  }
+}

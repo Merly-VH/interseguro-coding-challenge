@@ -1,0 +1,41 @@
+@if (stats(); as s) {
+  <mat-card class="stats-view" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Estadísticas</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="stats-view__tiles">
+        <div class="stats-view__tile">
+          <span class="stats-view__label">Máximo</span>
+          <span class="stats-view__value">{{ s.max | number: '1.0-4' }}</span>
+        </div>
+        <div class="stats-view__tile">
+          <span class="stats-view__label">Mínimo</span>
+          <span class="stats-view__value">{{ s.min | number: '1.0-4' }}</span>
+        </div>
+        <div class="stats-view__tile">
+          <span class="stats-view__label">Promedio</span>
+          <span class="stats-view__value">{{ s.average | number: '1.0-4' }}</span>
+        </div>
+        <div class="stats-view__tile">
+          <span class="stats-view__label">Suma total</span>
+          <span class="stats-view__value">{{ s.sum | number: '1.0-4' }}</span>
+        </div>
+      </div>
+
+      <div class="stats-view__diagonal">
+        <span class="stats-view__label">Matriz diagonal</span>
+        <mat-chip-set aria-label="Verificación de diagonalidad">
+          <mat-chip [color]="s.diagonal.q ? 'primary' : undefined" [highlighted]="s.diagonal.q">
+            <mat-icon matChipAvatar>{{ s.diagonal.q ? 'check_circle' : 'cancel' }}</mat-icon>
+            Q {{ s.diagonal.q ? 'es diagonal' : 'no es diagonal' }}
+          </mat-chip>
+          <mat-chip [color]="s.diagonal.r ? 'primary' : undefined" [highlighted]="s.diagonal.r">
+            <mat-icon matChipAvatar>{{ s.diagonal.r ? 'check_circle' : 'cancel' }}</mat-icon>
+            R {{ s.diagonal.r ? 'es diagonal' : 'no es diagonal' }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}

@@ -1,0 +1,25 @@
+.matrix-view {
+  height: 100%;
+
+  &__scroll {
+    overflow-x: auto;
+  }
+
+  &__empty {
+    color: var(--mat-sys-on-surface-variant, #666);
+    font-style: italic;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  td {
+    padding: 0.4rem 0.75rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+  }
+}

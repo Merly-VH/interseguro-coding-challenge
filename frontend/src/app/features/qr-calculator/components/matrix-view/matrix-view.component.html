@@ -1,0 +1,25 @@
+<mat-card class="matrix-view" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>{{ label() }}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (matrix()?.length) {
+      @let m = matrix()!;
+      <div class="matrix-view__scroll" role="table" [attr.aria-label]="label()">
+        <table>
+          <tbody>
+            @for (row of m; track $index) {
+              <tr>
+                @for (cell of row; track $index) {
+                  <td>{{ cell | number: '1.0-4' }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="matrix-view__empty">Sin datos todavía.</p>
+    }
+  </mat-card-content>
+</mat-card>

@@ -22,9 +22,21 @@ services:
       STATS_API_URL: http://node-stats-api:3000
       JWT_SECRET: ${JWT_SECRET:?falta JWT_SECRET en .env}
       API_KEY: ${API_KEY:?falta API_KEY en .env}
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
     depends_on:
       node-stats-api:
         condition: service_healthy
+    networks:
+      - challenge-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    environment:
+      API_KEY: ${API_KEY:?falta API_KEY en .env}
+    depends_on:
+      - go-qr-api
     networks:
       - challenge-net
 

@@ -11,6 +11,7 @@ enunciado original.
 ## Estructura
 - go-qr-api/       API Go + Fiber (factorizacion QR), puerto 8080
 - node-stats-api/  API Node.js + Express (estadisticas), puerto 3000
+- frontend/        Angular + Angular Material (UI), puerto 4200
 - docs/            Documentacion tecnica y decisiones
 
 ## Como levantar el entorno
@@ -30,6 +31,7 @@ habla por su nombre de servicio (`http://node-stats-api:3000`) via
 
 - go-qr-api: http://localhost:8080
 - node-stats-api: http://localhost:3000
+- frontend: http://localhost:4200
 
 Para detener y limpiar:
 ```bash
@@ -53,6 +55,13 @@ cd node-stats-api
 npm test
 ```
 
+**frontend** (tests unitarios de servicios y componentes, con Vitest vía
+`@angular/build:unit-test`):
+```bash
+cd frontend
+npm test
+```
+
 ## Variables de entorno
 
 | Variable        | API            | Default                 | Descripcion                                                        |
@@ -61,6 +70,7 @@ npm test
 | `STATS_API_URL` | go-qr-api      | `http://localhost:3000` | URL base de node-stats-api (comunicacion HTTP).                    |
 | `JWT_SECRET`    | ambas          | *(requerida, sin default)* | Secreto compartido HS256. Debe ser igual en ambos servicios.    |
 | `API_KEY`       | go-qr-api      | *(requerida, sin default)* | Credencial para emitir tokens en `POST /api/token`.              |
+| `CORS_ALLOWED_ORIGINS` | go-qr-api | `http://localhost:4200` | Origenes permitidos (separados por coma) para llamadas desde el navegador. |
 
 `JWT_SECRET` y `API_KEY` no tienen valor por defecto a proposito: ambos
 servicios se niegan a arrancar si faltan (fail-fast), para no correr nunca
@@ -145,6 +155,37 @@ Errores:
 ### GET /health
 
 Healthcheck, responde `{"status": "ok"}`.
+
+## Frontend
+
+SPA en Angular 22 (standalone, signals, sin zone.js) + Angular Material.
+Consume go-qr-api: pide un JWT en `POST /api/token` y llama a `POST /api/qr`
+con un interceptor HTTP que adjunta el `Authorization: Bearer <token>`
+automáticamente y renueva el token cuando expira.
+
+**Decisión de diseño — API key sin configuración para quien usa la app:**
+Angular compila todo a JS que corre en el navegador, así que la `API_KEY`
+no puede vivir en el código fuente (quedaría visible en el bundle y
+committeada en el repo). La solución: el contenedor del frontend la recibe
+en runtime desde el mismo `.env` que ya usa `docker-compose` para el
+backend, y un script de arranque (`docker-entrypoint.sh`) la escribe en
+`config.json` (via `envsubst`) antes de que nginx empiece a servir. La app
+lee ese archivo al iniciar y pide el JWT sola — quien abre
+`http://localhost:4200` no ve ningún campo de autenticación, solo la
+matriz.
+
+El campo "API key" en la UI existe únicamente como *fallback* para
+desarrollar el frontend fuera de Docker (`ng serve`), donde no hay
+contenedor que inyecte nada; ahí sí hace falta pegar a mano la misma
+`API_KEY` del `.env`.
+
+Desarrollo local (fuera de Docker):
+```bash
+cd frontend
+npm start   # ng serve, puerto 4200
+```
+Requiere que `go-qr-api` corra con `CORS_ALLOWED_ORIGINS` incluyendo
+`http://localhost:4200` (es el default).
 
 ## API: node-stats-api
 

@@ -1,0 +1,50 @@
+<div class="matrix-input">
+  <div class="matrix-input__size-controls">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Filas</mat-label>
+      <input
+        matInput
+        type="number"
+        [min]="minSize"
+        [max]="maxSize"
+        [value]="rows()"
+        (change)="onRowsChange($any($event.target).valueAsNumber)"
+        aria-label="Número de filas de la matriz"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Columnas</mat-label>
+      <input
+        matInput
+        type="number"
+        [min]="minSize"
+        [max]="maxSize"
+        [value]="cols()"
+        (change)="onColsChange($any($event.target).valueAsNumber)"
+        aria-label="Número de columnas de la matriz"
+      />
+    </mat-form-field>
+  </div>
+
+  <div
+    class="matrix-input__grid"
+    role="grid"
+    [attr.aria-label]="'Matriz de ' + rows() + ' filas por ' + cols() + ' columnas'"
+    [style.grid-template-columns]="'repeat(' + cols() + ', minmax(4.5rem, 1fr))'"
+  >
+    @for (row of cells(); track $index; let i = $index) {
+      @for (cell of row; track $index; let j = $index) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" role="gridcell">
+          <input
+            matInput
+            type="number"
+            [value]="cell"
+            (change)="onCellChange(i, j, $any($event.target).value)"
+            [attr.aria-label]="'Valor en fila ' + (i + 1) + ', columna ' + (j + 1)"
+          />
+        </mat-form-field>
+      }
+    }
+  </div>
+</div>
