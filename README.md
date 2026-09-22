@@ -46,3 +46,39 @@ Errores `400 Bad Request` (formato consistente `{"error": "..."}`):
 ### GET /health
 
 Healthcheck, responde `{"status": "ok"}`.
+
+## API: node-stats-api
+
+### POST /api/stats
+
+Recibe `q` y `r` (las matrices devueltas por `go-qr-api`) y calcula
+estadisticas sobre el conjunto combinado de sus valores: maximo, minimo,
+promedio, suma total, y verificacion de diagonalidad de cada matriz por
+separado (una matriz no cuadrada nunca es diagonal).
+
+Request:
+```json
+{ "q": [[1, 0], [0, 1]], "r": [[2, 0], [0, 3]] }
+```
+
+Response `200 OK`:
+```json
+{
+  "max": 3,
+  "min": 0,
+  "sum": 7,
+  "average": 0.875,
+  "diagonal": { "q": true, "r": true }
+}
+```
+
+Errores `400 Bad Request` (formato consistente `{"error": "..."}`):
+- Falta el campo `q` o `r`, o no es una matriz no vacia.
+- Matriz no rectangular.
+- Valores no numericos.
+- Matriz que excede el tamano maximo soportado (1000x1000).
+- Cuerpo JSON malformado.
+
+### GET /health
+
+Healthcheck, responde `{"status": "ok"}`.
